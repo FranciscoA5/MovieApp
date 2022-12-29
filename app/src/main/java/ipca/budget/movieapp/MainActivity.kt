@@ -3,13 +3,13 @@ package ipca.budget.movieapp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Spannable.Factory
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.ImageView
-import android.widget.ListView
-import android.widget.TextView
+import android.widget.*
 import androidx.lifecycle.lifecycleScope
 
 class MainActivity : AppCompatActivity() {
@@ -31,6 +31,31 @@ class MainActivity : AppCompatActivity() {
         //BackEnd.requestMovieAPI(lifecycleScope)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu1,menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+        return when(item.itemId){
+            R.id.favourites -> {
+                val intent = Intent(this@MainActivity, Favorites::class.java)
+                startActivity(intent)
+                return true
+            }
+
+            R.id.wishlist -> {
+                val intent = Intent(this@MainActivity, Wishlist::class.java)
+                startActivity(intent)
+                return true
+            }
+
+            else -> {
+                return false
+            }
+        }
+    }
 
     inner class MovieAdapter : BaseAdapter() {
         override fun getCount(): Int {

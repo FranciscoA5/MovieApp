@@ -21,9 +21,24 @@ object BackEnd {
 //                )
 //                .build()
 //
-//            val response = client.newCall(request).execute().use {
-//                println("ola")
-//                println(it.body!!.string())
+//            val response = client.newCall(request).execute().use { response ->
+//                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+//
+//                val result = response.body!!.string()
+//
+//                val jsonObject = JSONObject(result)
+//                val jsonObjectStatus = jsonObject.getString("status_code")
+//                if (jsonObjectStatus == 200){
+//                    var articles = arrayListOf<MovieandSeries>()
+//                    val jsonArrayArticles = jsonObject.getJSONArray("results")
+//                    for( index in 0 until  jsonArrayArticles.length()){
+//                        val jsonObjectArticle = jsonArrayArticles.getJSONObject(index)
+//                        val article = Article.fromJSON(jsonObjectArticle)
+//                        articles.add(article)
+//                    }
+//                    scope.launch (Dispatchers.Main){
+//                        callback(articles)
+//                    }
 //            }
 //        }
 //    }
