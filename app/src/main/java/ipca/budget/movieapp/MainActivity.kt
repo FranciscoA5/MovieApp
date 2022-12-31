@@ -75,8 +75,20 @@ class MainActivity : AppCompatActivity() {
 
             val textViewMovieTitle = rootView.findViewById<TextView>(R.id.MovieTitle)
             val imageViewMovieImage = rootView.findViewById<ImageView>(R.id.MovieImage)
+            val toggleButton =  rootView.findViewById<ToggleButton>(R.id.favbutton);
 
             textViewMovieTitle.text = movies[position].title
+
+            toggleButton.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    // The toggle is enabled
+                } else {
+                    // The toggle is disabled
+                }
+            }
+
+
+
             //imageViewMovieImage.text = movies[position].title
 
 //            articles[position].urlToImage?.let {
