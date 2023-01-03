@@ -11,19 +11,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.lifecycle.lifecycleScope
+import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
 
     var movies = arrayListOf<MovieandSeries>()
+    var fav = arrayListOf<MovieandSeries>()
     val adapter = MovieAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val movie1 = MovieandSeries()
-        val movie2 = MovieandSeries()
-        movie1.title = "Cars"
-        movie2.title = "Cars2"
+        val movie1 = MovieandSeries("Cars")
+        val movie2 = MovieandSeries("Cars 2")
         movies.add(movie1)
         movies.add(movie2)
 
@@ -80,10 +80,10 @@ class MainActivity : AppCompatActivity() {
             textViewMovieTitle.text = movies[position].title
 
             toggleButton.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    // The toggle is enabled
-                } else {
-                    // The toggle is disabled
+                if(isChecked){
+
+                }else{
+
                 }
             }
 
