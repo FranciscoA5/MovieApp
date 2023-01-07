@@ -1,5 +1,7 @@
 package ipca.budget.movieapp
 
+
+import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONObject
 
 class MovieandSeries {
@@ -7,14 +9,14 @@ class MovieandSeries {
     var url         : String? = null
     var urlToImage  : String? = null
     var isFavourite = false
+    var user  : String? = null
 
     fun toJSON() : JSONObject {
         val jsonObject = JSONObject()
         jsonObject.put("name"      , title      )
-        jsonObject.put(jsonObject.getJSONObject("external_ids").getJSONObject("imdb").getString("url")  , url )
-      // jsonObject.put("publishedAt", publishedAt?.toServerDateString())
-      // jsonObject.put("content"    , content    )
+        jsonObject.put("url", url )
         jsonObject.put("urlToImage" , urlToImage )
+
 
         return jsonObject
     }
@@ -24,10 +26,6 @@ class MovieandSeries {
             return MovieandSeries().apply {
                 title       = jsonObject.getString("name"      )
                 url         = jsonObject.getJSONObject("external_ids").getJSONObject("imdb").getString("url")
-                val url2 = url
-                println(url2)
-                //publishedAt = jsonObject.getString("publishedAt").parseDate()
-                //content     = jsonObject.getString("content"    )
                 urlToImage  = jsonObject.getString("picture")
             }
         }

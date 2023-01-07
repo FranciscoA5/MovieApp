@@ -16,7 +16,7 @@ object BackEnd {
     fun requestMovieAPI(scope: CoroutineScope, term: String, callback: (ArrayList<MovieandSeries>)->Unit ) {
         scope.launch(Dispatchers.IO) {
             val request = Request.Builder()
-                .url("https://utelly-tv-shows-and-movies-availability-v1.p.rapidapi.com/lookup?term=$term&country=uk")
+                .url("https://utelly-tv-shows-and-movies-availability-v1.p.rapidapi.com/lookup?term=$term&country=us")
                 .get()
                 .addHeader("X-RapidAPI-Key", "d00f3fb5edmsh16e0248d8afd00bp1f940ajsn4aec02b20ad7")
                 .addHeader(
@@ -38,7 +38,9 @@ object BackEnd {
                     val movies = arrayListOf<MovieandSeries>()
                     val jsonArrayArticles = jsonObject.getJSONArray("results")
                     for (index in 0 until jsonArrayArticles.length()) {
-                        val imdburl = jsonArrayArticles.getJSONObject(index).getJSONObject("external_ids").getJSONObject("imdb").getString("url")
+                        val extid = jsonArrayArticles.getJSONObject(index).getJSONObject("external_ids")
+                        val imdb = extid.getJSONObject("imdb")
+                        val imdburl = imdb.getString("url")
                         println(imdburl)
                         val jsonObjectMovie = jsonArrayArticles.getJSONObject(index)
                         val movie = MovieandSeries.fromJSON(jsonObjectMovie)

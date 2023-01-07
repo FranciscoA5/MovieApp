@@ -10,11 +10,11 @@ class MovieSeriesDetail : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_series_detail)
 
-        val movieImdb = MovieandSeries.fromJSON(JSONObject(intent.getStringExtra(MainActivity.EXTRA_ARTICLE_STRING)))
+        val movieImdb = intent.getStringExtra("url")
 
-        title = movieImdb.title
 
-        movieImdb.url?.let {
+
+        movieImdb?.let {
             findViewById<WebView>(R.id.webview).loadUrl(it)
         }
 

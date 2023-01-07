@@ -1,6 +1,8 @@
 package ipca.budget.movieapp
 
+import android.content.ContentValues.TAG
 import android.content.Intent
+import android.nfc.Tag
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,22 +15,21 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import okhttp3.internal.wait
 import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
 
+    val fireStoreDatabase = FirebaseFirestore.getInstance()
     var movies = arrayListOf<MovieandSeries>()
-    var fav = arrayListOf<MovieandSeries>()
     val adapter = MovieAdapter()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-      //  val movie1 = MovieandSeries("Cars")
-      //  val movie2 = MovieandSeries("Cars 2")
-      //  movies.add(movie1)
-      //  movies.add(movie2)
 
         findViewById<ListView>(R.id.MovieList).adapter = adapter
         val searchview = findViewById<SearchView>(R.id.searchview)
@@ -38,7 +39,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if(newText!!.length >= 3){
+                if(newText!!.length < 3){
+                    movies.clear()
+                    adapter.notifyDataSetChanged()
+                    return false
+                }
+
+                if(newText.length >= 3){
                     BackEnd.requestMovieAPI(lifecycleScope, newText){
                         movies = it
                         adapter.notifyDataSetChanged()
@@ -101,6 +108,35 @@ class MainActivity : AppCompatActivity() {
 
             toggleButton.setOnCheckedChangeListener { _, isChecked ->
                 movies[position].isFavourite = isChecked
+                val intent = Intent(this@MainActivity, Favorites::class.java)
+                intent.putExtra("isfavourite", movies[position].isFavourite)
+
+                if(movies[position].isFavourite){
+                    var title : String? = movies[position].title
+                    var imdb : String? = movies[position].url
+                    var picture : String? = movies[position].urlToImage
+                    lateinit var firebaseAuth: FirebaseAuth
+                    firebaseAuth = FirebaseAuth.getInstance()
+                    val user : String? = firebaseAuth.currentUser?.email
+                    // var user  = intent.getStringExtra("user",userName.toString())
+
+                    val favourites: MutableMap<String, Any> = HashMap()
+                    favourites["Title"] = title.toString()
+                    favourites["Imdb"] = imdb.toString()
+                    favourites["Picture"] = picture.toString()
+                    favourites["User"] = user.toString()
+
+                    fireStoreDatabase.collection("Favourites").document(movies[position].title.toString())
+                        .set(favourites)
+                    // .addOnSuccessListener {
+                    //     Log.d(TAG, "Added doucument with ID ${it.id}")
+                    // }
+                    // .addOnFailureListener {
+                    //     Log.w(TAG, "Error adding document ${it}")
+                    // }
+                }
+
+
             }
 
 
@@ -115,12 +151,12 @@ class MainActivity : AppCompatActivity() {
 
             rootView.setOnClickListener {
                 Log.d("MainActivity", movies[position].title?:"" )
-                //val intent = Intent(this@MainActivity, ArticleDetailActivity::class.java)
-                //intent.putExtra("title", articles[position].title)
+                val intent = Intent(this@MainActivity, MovieSeriesDetail::class.java)
+                intent.putExtra("url", movies[position].url)
                 //intent.putExtra("body", articles[position].content)
 
-                val intent = Intent(this@MainActivity, MovieSeriesDetail::class.java)
-                intent.putExtra(EXTRA_ARTICLE_STRING, movies[position].toJSON().toString() )
+                // val intent = Intent(this@MainActivity, WebView::class.java)
+                // intent.putExtra(EXTRA_ARTICLE_STRING, movies[position].toJSON().toString() )
                 startActivity(intent)
 
             }
@@ -131,7 +167,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_ARTICLE_STRING = "movieimdb"
+        const val EXTRA_ARTICLE_STRING = "article_string"
     }
 
 }
