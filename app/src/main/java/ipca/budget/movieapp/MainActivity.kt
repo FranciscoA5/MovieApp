@@ -17,14 +17,20 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import okhttp3.internal.wait
 import java.util.ArrayList
+import android.app.AlertDialog
+import android.widget.EditText
+
+
 
 class MainActivity : AppCompatActivity() {
 
     val fireStoreDatabase = FirebaseFirestore.getInstance()
     var movies = arrayListOf<MovieandSeries>()
     val adapter = MovieAdapter()
+    var inputName:String? = null
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,12 +46,14 @@ class MainActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if(newText!!.length < 3){
+
                     movies.clear()
                     adapter.notifyDataSetChanged()
                     return false
                 }
 
-                if(newText.length >= 3){
+
+                if(newText!!.length >= 3){
                     BackEnd.requestMovieAPI(lifecycleScope, newText){
                         movies = it
                         adapter.notifyDataSetChanged()
@@ -69,14 +77,12 @@ class MainActivity : AppCompatActivity() {
             R.id.favourites -> {
                 val intent = Intent(this@MainActivity, Favorites::class.java)
                 startActivity(intent)
+                movies.clear()
+                val searchview = findViewById<SearchView>(R.id.searchview)
+                searchview.setQuery("", false)
                 return true
             }
 
-            R.id.wishlist -> {
-                val intent = Intent(this@MainActivity, Wishlist::class.java)
-                startActivity(intent)
-                return true
-            }
 
             else -> {
                 return false
@@ -98,44 +104,90 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun getView(position: Int, view: View?, p2: ViewGroup?): View {
+
+
             val rootView = layoutInflater.inflate(R.layout.row_moviesandseries,p2,false)
 
             val textViewMovieTitle = rootView.findViewById<TextView>(R.id.MovieTitle)
             val imageViewMovieImage = rootView.findViewById<ImageView>(R.id.MovieImage)
             val toggleButton =  rootView.findViewById<ToggleButton>(R.id.favbutton);
+            val sendButton =  rootView.findViewById<ImageButton>(R.id.sendButton);
 
             textViewMovieTitle.text = movies[position].title
 
             toggleButton.setOnCheckedChangeListener { _, isChecked ->
+
                 movies[position].isFavourite = isChecked
                 val intent = Intent(this@MainActivity, Favorites::class.java)
                 intent.putExtra("isfavourite", movies[position].isFavourite)
 
+                var title : String? = movies[position].title
+                var imdb : String? = movies[position].url
+                var picture : String? = movies[position].urlToImage
+                lateinit var firebaseAuth: FirebaseAuth
+                firebaseAuth = FirebaseAuth.getInstance()
+                val user : String? = firebaseAuth.currentUser?.email
+
                 if(movies[position].isFavourite){
-                    var title : String? = movies[position].title
-                    var imdb : String? = movies[position].url
-                    var picture : String? = movies[position].urlToImage
-                    lateinit var firebaseAuth: FirebaseAuth
-                    firebaseAuth = FirebaseAuth.getInstance()
-                    val user : String? = firebaseAuth.currentUser?.email
+
                     // var user  = intent.getStringExtra("user",userName.toString())
 
                     val favourites: MutableMap<String, Any> = HashMap()
                     favourites["Title"] = title.toString()
                     favourites["Imdb"] = imdb.toString()
                     favourites["Picture"] = picture.toString()
-                    favourites["User"] = user.toString()
 
-                    fireStoreDatabase.collection("Favourites").document(movies[position].title.toString())
-                        .set(favourites)
-                    // .addOnSuccessListener {
-                    //     Log.d(TAG, "Added doucument with ID ${it.id}")
-                    // }
-                    // .addOnFailureListener {
-                    //     Log.w(TAG, "Error adding document ${it}")
-                    // }
+                    fireStoreDatabase.collection("Users").document(user.toString()).collection("Favourites").document(title.toString()).set(favourites)
+                    //fireStoreDatabase.collection("Users").document(user.toString()).collection("Recommendations").document(title.toString()).set(favourites)
+                }else{
+                    fireStoreDatabase.collection("Users").document(user.toString()).collection("Favourites")
+                        .document(movies[position].title.toString())
+                        .delete()
+                        .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully deleted!") }
+                        .addOnFailureListener { e -> Log.w(TAG, "Error deleting document", e) }
                 }
 
+
+            }
+
+            sendButton.setOnClickListener {
+
+
+                val builder = AlertDialog.Builder(this@MainActivity)
+                val input = EditText(this@MainActivity)
+                builder.setTitle("Enter Your Name")
+
+                builder.setView(input)
+
+                builder.setPositiveButton("OK") { dialog, which ->
+                    inputName = input.text.toString()
+                    var title : String? = movies[position].title
+                    var imdb : String? = movies[position].url
+                    var picture : String? = movies[position].urlToImage
+
+                    // var user  = intent.getStringExtra("user",userName.toString())
+
+                    val favourites: MutableMap<String, Any> = HashMap()
+                    favourites["Title"] = title.toString()
+                    favourites["Imdb"] = imdb.toString()
+                    favourites["Picture"] = picture.toString()
+
+
+                    fireStoreDatabase.collection("Users").document(inputName.toString()).collection("Recommendations")
+                        .document(movies[position].title.toString())
+                        .set(favourites)
+
+
+
+                    // Do something with the input name, such as saving it to a variable or displaying it in a text view
+                }
+
+                builder.setNegativeButton("Cancel") { dialog, which ->
+                    // Handle cancel button click
+                }
+
+                val dialog = builder.create()
+                dialog.show()
 
             }
 
